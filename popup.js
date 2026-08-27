@@ -371,7 +371,10 @@ async function loadCategoryDefinitions() {
 }
 
 async function loadCategoryMembers(categoryId) {
-  if (state.categoryMembers.has(categoryId)) return;
+  if (state.categoryMembers.has(categoryId)) {
+    render();
+    return;
+  }
   state.categoryLoading = true;
   setNotice("正在读取所选关注分类…");
   render();
