@@ -292,20 +292,22 @@ async function loadCategoryMembers(categoryId) {
     const memberIds = new Set();
     const pageSize = 50;
     let page = 1;
-    let total = Infinity;
-    while (memberIds.size < total && page <= 200) {
+    while (page <= 200) {
       const response = await sendApi("tagMembers", { tagId: categoryId, page, pageSize });
       if (response.code !== 0) throw new Error(apiMessage(response, "读取分类成员失败"));
       const list = Array.isArray(response.data?.list)
         ? response.data.list
         : Array.isArray(response.data) ? response.data : [];
-      total = Number(response.data?.total ?? response.data?.count);
-      if (!Number.isFinite(total)) total = memberIds.size + list.length;
+      const previousSize = memberIds.size;
       for (const raw of list) {
         const mid = String(raw.mid ?? raw.uid ?? "");
         if (/^\d+$/.test(mid)) memberIds.add(mid);
       }
       if (list.length < pageSize || list.length === 0) break;
+      if (memberIds.size === previousSize) {
+        throw new Error(`分类接口第 ${page} 页未返回新成员，已停止以避免重复请求。`);
+      }
+      setNotice(`正在读取所选关注分类：已载入 ${memberIds.size} 人…`);
       page += 1;
     }
     state.categoryMembers.set(categoryId, memberIds);

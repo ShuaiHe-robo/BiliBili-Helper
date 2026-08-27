@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bilibili取关助手",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "在已登录的哔哩哔哩页面中筛选并限速批量取消关注。",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["https://*.bilibili.com/*"],
