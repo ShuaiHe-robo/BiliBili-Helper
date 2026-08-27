@@ -272,7 +272,15 @@ function renderConfirmationDrawer() {
     meta.textContent = `UID ${user.mid} · 关注于 ${formatFollowTime(user.followedAt)}`;
     copy.append(name, meta);
 
-    row.append(avatar, copy);
+    const removeButton = document.createElement("button");
+    removeButton.className = "confirmation-remove-button";
+    removeButton.type = "button";
+    removeButton.textContent = "取消选中";
+    removeButton.dataset.confirmationRemoveMid = user.mid;
+    removeButton.disabled = state.running;
+    removeButton.setAttribute("aria-label", `从最终取关名单中移除 ${user.name}`);
+
+    row.append(avatar, copy, removeButton);
     fragment.append(row);
   }
   elements.confirmationDrawerList.append(fragment);
@@ -281,6 +289,7 @@ function renderConfirmationDrawer() {
 function openConfirmationDrawer() {
   enforceProtectedSelectionInvariant();
   if (state.selected.size === 0 || state.running) return;
+  closeSelectionDrawer();
   elements.confirmationDrawer.hidden = false;
   renderConfirmationDrawer();
   elements.confirmationDrawerCloseButton.focus();
@@ -745,6 +754,13 @@ elements.selectionDrawerDoneButton.addEventListener("click", closeSelectionDrawe
 elements.confirmationDrawerBackdrop.addEventListener("click", closeConfirmationDrawer);
 elements.confirmationDrawerCloseButton.addEventListener("click", closeConfirmationDrawer);
 elements.confirmationDrawerEditButton.addEventListener("click", editFromConfirmationDrawer);
+elements.confirmationDrawerList.addEventListener("click", (event) => {
+  const removeButton = event.target.closest("button[data-confirmation-remove-mid]");
+  if (!removeButton || state.running) return;
+  state.selected.delete(removeButton.dataset.confirmationRemoveMid);
+  render();
+  if (state.selected.size === 0) closeConfirmationDrawer();
+});
 elements.confirmationDrawerSubmitButton.addEventListener("click", () => {
   closeConfirmationDrawer();
   runBatch();

@@ -22,5 +22,10 @@ assert.match(
   /elements\.confirmationDrawerSubmitButton\.addEventListener\("click", \(\) => \{\s*closeConfirmationDrawer\(\);\s*runBatch\(\);\s*\}\)/,
   "只有确认抽屉的最终按钮才能开始批处理"
 );
+assert.match(
+  script,
+  /data-confirmation-remove-mid|confirmationRemoveMid/,
+  "确认抽屉应支持逐个取消选中"
+);
 
 console.log("confirmation drawer flow regression passed");
