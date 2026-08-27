@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bilibili取关助手</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <div class="brand-mark" aria-hidden="true">B</div>
+        <div>
+          <h1>Bilibili取关助手</h1>
+          <p id="accountText">正在连接当前 B 站页面…</p>
+        </div>
+        <button id="refreshButton" class="icon-button" type="button" title="重新读取关注列表" aria-label="重新读取关注列表">↻</button>
+      </header>
+
+      <section id="notice" class="notice" role="status" aria-live="polite">
+        <span class="notice-dot"></span>
+        <span id="noticeText">正在检查登录状态</span>
+      </section>
+
+      <section class="toolbar" aria-label="筛选与选择">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="searchInput" type="search" placeholder="搜索昵称或 UID" autocomplete="off" />
+        </label>
+      </section>
+
+      <section class="filterbar" aria-label="关注筛选与排序">
+        <label class="filter-option category-option">
+          <span>关注分类</span>
+          <select id="categorySelect" aria-label="按照关注分类筛选">
+            <option value="all" selected>全部关注</option>
+          </select>
+        </label>
+        <label class="filter-option sort-option">
+          <span>关注时间</span>
+          <select id="sortSelect" aria-label="按照关注时间排序">
+            <option value="desc" selected>倒序 · 最新优先</option>
+            <option value="asc">正序 · 最早优先</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="summary" aria-label="列表统计">
+        <span>已载入 <strong id="loadedCount">0</strong></span>
+        <span>本页显示 <strong id="visibleCount">0</strong></span>
+        <span class="selected-count">已选 <strong id="selectedCount">0</strong></span>
+      </section>
+
+      <section id="list" class="follow-list" aria-label="关注列表"></section>
+
+      <nav id="pagination" class="pagination" aria-label="关注列表分页" hidden>
+        <button id="previousPageButton" class="page-button" type="button" aria-label="上一页">‹</button>
+        <span id="pageInfo">第 1 / 1 页</span>
+        <button id="nextPageButton" class="page-button" type="button" aria-label="下一页">›</button>
+        <span class="pagination-divider" aria-hidden="true"></span>
+        <button id="selectAndNextButton" class="text-button page-select-button combined-action" type="button" title="切换到下一页并选中该页可选账号">下一页并全选</button>
+        <button id="selectVisibleButton" class="text-button page-select-button" type="button">全选本页</button>
+        <button id="invertVisibleButton" class="text-button page-select-button" type="button">反选本页</button>
+        <button id="clearButton" class="text-button page-select-button clear-selection-button" type="button">清空已选</button>
+      </nav>
+
+      <section id="emptyState" class="empty-state">
+        <div class="empty-icon" aria-hidden="true">◎</div>
+        <p id="emptyTitle">正在载入关注列表</p>
+        <small id="emptyHint">请稍候</small>
+      </section>
+
+      <section class="settings">
+        <label class="protect-option">
+          <input id="protectSpecial" type="checkbox" checked />
+          <span>保护“特别关注”</span>
+        </label>
+        <label class="delay-option">
+          <span>平均间隔</span>
+          <select id="delaySelect">
+            <option value="1200">1.2 秒</option>
+            <option value="1800" selected>1.8 秒（推荐）</option>
+            <option value="2500">2.5 秒</option>
+            <option value="3500">3.5 秒</option>
+          </select>
+        </label>
+        <label class="jitter-option">
+          <span>高斯波动</span>
+          <select id="jitterSelect" title="标准差占平均间隔的比例">
+            <option value="5">σ 5%</option>
+            <option value="10" selected>σ 10%（默认）</option>
+            <option value="15">σ 15%</option>
+            <option value="20">σ 20%</option>
+            <option value="30">σ 30%</option>
+          </select>
+        </label>
+      </section>
+
+      <footer class="footer">
+        <p>取消关注无法由本插件撤销；操作严格串行，间隔会随机波动，但不能保证不触发风控。</p>
+        <button id="runButton" class="primary-button" type="button" disabled>取消关注已选用户</button>
+      </footer>
+    </main>
+
+    <section id="batchMask" class="batch-mask" aria-live="polite" aria-modal="true" role="dialog" hidden>
+      <div class="mask-card">
+        <div class="tea-cup" aria-hidden="true">🍵</div>
+        <h2 id="maskTitle">取关ing🍵</h2>
+        <p id="maskProgressText">0 / 0</p>
+        <div class="mask-progress-track"><div id="maskProgressBar" class="mask-progress-bar"></div></div>
+        <p id="maskCurrentTarget" class="mask-current-target">正在准备后台任务…</p>
+        <p id="maskResultText" class="mask-result-text">成功 0 · 失败 0</p>
+        <div class="mask-actions">
+          <button id="maskStopButton" class="mask-stop-button" type="button">停止后续操作</button>
+          <button id="maskForceStopButton" class="mask-force-stop-button" type="button" title="立即尝试中断当前网络请求">强制中断</button>
+        </div>
+        <small>误点弹窗外部也不会中断。强制中断无法撤销已发送或已完成的请求；请保持绑定的 B 站标签页打开。</small>
+      </div>
+    </section>
+
+    <dialog id="confirmDialog">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-symbol" aria-hidden="true">!</div>
+        <h2>确认取消关注？</h2>
+        <p id="confirmText"></p>
+        <label class="confirm-check">
+          <input id="confirmCheckbox" type="checkbox" />
+          <span>我已核对名单，并了解此操作无法由插件撤销</span>
+        </label>
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary-button">返回检查</button>
+          <button id="confirmButton" value="confirm" class="confirm-button" disabled>确认执行</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

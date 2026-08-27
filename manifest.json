@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Bilibili取关助手",
+  "version": "1.10.0",
+  "description": "在已登录的哔哩哔哩页面中筛选并限速批量取消关注。",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://*.bilibili.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Bilibili取关助手",
+    "default_popup": "popup.html"
+  }
+}
