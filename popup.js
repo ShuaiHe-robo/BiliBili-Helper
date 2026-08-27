@@ -40,6 +40,14 @@ const elements = {
   selectionDrawerEmptyText: document.querySelector("#selectionDrawerEmptyText"),
   selectionDrawerClearButton: document.querySelector("#selectionDrawerClearButton"),
   selectionDrawerDoneButton: document.querySelector("#selectionDrawerDoneButton"),
+  confirmationDrawer: document.querySelector("#confirmationDrawer"),
+  confirmationDrawerBackdrop: document.querySelector("#confirmationDrawerBackdrop"),
+  confirmationDrawerCloseButton: document.querySelector("#confirmationDrawerCloseButton"),
+  confirmationDrawerCount: document.querySelector("#confirmationDrawerCount"),
+  confirmationSettings: document.querySelector("#confirmationSettings"),
+  confirmationDrawerList: document.querySelector("#confirmationDrawerList"),
+  confirmationDrawerEditButton: document.querySelector("#confirmationDrawerEditButton"),
+  confirmationDrawerSubmitButton: document.querySelector("#confirmationDrawerSubmitButton"),
   list: document.querySelector("#list"),
   pagination: document.querySelector("#pagination"),
   previousPageButton: document.querySelector("#previousPageButton"),
@@ -53,10 +61,6 @@ const elements = {
   delaySelect: document.querySelector("#delaySelect"),
   jitterSelect: document.querySelector("#jitterSelect"),
   runButton: document.querySelector("#runButton"),
-  confirmDialog: document.querySelector("#confirmDialog"),
-  confirmText: document.querySelector("#confirmText"),
-  confirmCheckbox: document.querySelector("#confirmCheckbox"),
-  confirmButton: document.querySelector("#confirmButton"),
   batchMask: document.querySelector("#batchMask"),
   maskTitle: document.querySelector("#maskTitle"),
   maskProgressText: document.querySelector("#maskProgressText"),
@@ -235,6 +239,64 @@ function closeSelectionDrawer() {
   elements.selectedDrawerButton.focus();
 }
 
+function renderConfirmationDrawer() {
+  const selectedUsers = getSelectedUsers();
+  elements.confirmationDrawerCount.textContent = String(selectedUsers.length);
+  elements.confirmationDrawerSubmitButton.disabled = state.running || selectedUsers.length === 0;
+  elements.confirmationDrawerSubmitButton.textContent = selectedUsers.length > 0
+    ? `确认取消关注 ${selectedUsers.length} 人`
+    : "确认执行";
+  if (elements.confirmationDrawer.hidden) return;
+
+  const delayText = elements.delaySelect.selectedOptions[0]?.textContent || `${elements.delaySelect.value} 毫秒`;
+  elements.confirmationSettings.textContent = `串行执行 · 平均间隔 ${delayText} · 高斯波动 σ ${elements.jitterSelect.value}%`;
+  elements.confirmationDrawerList.replaceChildren();
+
+  const fragment = document.createDocumentFragment();
+  for (const user of selectedUsers) {
+    const row = document.createElement("div");
+    row.className = "selection-drawer-item";
+
+    const avatar = document.createElement("span");
+    avatar.className = "avatar";
+    avatar.textContent = Array.from(user.name.trim())[0]?.toUpperCase() || "B";
+
+    const copy = document.createElement("span");
+    copy.className = "user-copy";
+    const name = document.createElement("div");
+    name.className = "user-name";
+    name.textContent = user.name;
+    name.title = user.name;
+    const meta = document.createElement("div");
+    meta.className = "user-meta";
+    meta.textContent = `UID ${user.mid} · 关注于 ${formatFollowTime(user.followedAt)}`;
+    copy.append(name, meta);
+
+    row.append(avatar, copy);
+    fragment.append(row);
+  }
+  elements.confirmationDrawerList.append(fragment);
+}
+
+function openConfirmationDrawer() {
+  enforceProtectedSelectionInvariant();
+  if (state.selected.size === 0 || state.running) return;
+  elements.confirmationDrawer.hidden = false;
+  renderConfirmationDrawer();
+  elements.confirmationDrawerCloseButton.focus();
+}
+
+function closeConfirmationDrawer() {
+  if (elements.confirmationDrawer.hidden) return;
+  elements.confirmationDrawer.hidden = true;
+  elements.runButton.focus();
+}
+
+function editFromConfirmationDrawer() {
+  closeConfirmationDrawer();
+  openSelectionDrawer();
+}
+
 function render() {
   enforceProtectedSelectionInvariant();
   const filtered = getFilteredFollowings();
@@ -246,8 +308,8 @@ function render() {
   elements.selectedCount.textContent = String(state.selected.size);
   elements.selectedDrawerButton.disabled = state.loading || state.selected.size === 0;
   elements.runButton.textContent = state.selected.size > 0
-    ? `取消关注已选 ${state.selected.size} 人`
-    : "取消关注已选用户";
+    ? `检查并确认已选 ${state.selected.size} 人`
+    : "选择用户后检查名单";
   elements.runButton.disabled = state.loading || state.running || state.selected.size === 0;
   elements.refreshButton.disabled = state.loading || state.running;
   elements.selectVisibleButton.disabled = state.loading || state.categoryLoading || state.running || visible.length === 0;
@@ -269,6 +331,7 @@ function render() {
   elements.nextPageButton.disabled = state.loading || state.running || state.currentPage >= pageCount;
   elements.selectAndNextButton.disabled = state.loading || state.categoryLoading || state.running || state.currentPage >= pageCount;
   renderSelectionDrawer();
+  renderConfirmationDrawer();
 
   if (visible.length === 0) {
     if (state.categoryLoading) {
@@ -540,18 +603,6 @@ function invertVisible() {
   render();
 }
 
-function openConfirmation() {
-  enforceProtectedSelectionInvariant();
-  if (state.selected.size === 0 || state.running) return;
-  const selectedUsers = state.followings.filter((user) => state.selected.has(user.mid));
-  const preview = selectedUsers.slice(0, 3).map((user) => user.name).join("、");
-  const remainder = selectedUsers.length > 3 ? ` 等 ${selectedUsers.length} 人` : "";
-  elements.confirmText.textContent = `即将串行取消关注：${preview}${remainder}。间隔采用 σ ${elements.jitterSelect.value}% 的高斯波动，执行后这些用户会从当前列表移除。`;
-  elements.confirmCheckbox.checked = false;
-  elements.confirmButton.disabled = true;
-  elements.confirmDialog.showModal();
-}
-
 function updateBatchMask(status) {
   elements.batchMask.hidden = false;
   elements.maskTitle.textContent = status.running ? "取关ing🍵" : status.status === "completed" ? "取关完成🍵" : "任务已停止";
@@ -691,6 +742,13 @@ elements.selectedDrawerButton.addEventListener("click", openSelectionDrawer);
 elements.selectionDrawerBackdrop.addEventListener("click", closeSelectionDrawer);
 elements.selectionDrawerCloseButton.addEventListener("click", closeSelectionDrawer);
 elements.selectionDrawerDoneButton.addEventListener("click", closeSelectionDrawer);
+elements.confirmationDrawerBackdrop.addEventListener("click", closeConfirmationDrawer);
+elements.confirmationDrawerCloseButton.addEventListener("click", closeConfirmationDrawer);
+elements.confirmationDrawerEditButton.addEventListener("click", editFromConfirmationDrawer);
+elements.confirmationDrawerSubmitButton.addEventListener("click", () => {
+  closeConfirmationDrawer();
+  runBatch();
+});
 elements.selectionDrawerSearch.addEventListener("input", renderSelectionDrawer);
 elements.selectionDrawerClearButton.addEventListener("click", () => {
   if (state.running) return;
@@ -704,7 +762,9 @@ elements.selectionDrawerList.addEventListener("click", (event) => {
   render();
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !elements.selectionDrawer.hidden) closeSelectionDrawer();
+  if (event.key !== "Escape") return;
+  if (!elements.confirmationDrawer.hidden) closeConfirmationDrawer();
+  else if (!elements.selectionDrawer.hidden) closeSelectionDrawer();
 });
 elements.previousPageButton.addEventListener("click", () => {
   state.currentPage = Math.max(1, state.currentPage - 1);
@@ -715,17 +775,9 @@ elements.nextPageButton.addEventListener("click", () => {
   render();
 });
 elements.protectSpecial.addEventListener("change", reconcileProtectedSelections);
-elements.runButton.addEventListener("click", openConfirmation);
+elements.runButton.addEventListener("click", openConfirmationDrawer);
 elements.maskStopButton.addEventListener("click", stopBackgroundBatch);
 elements.maskForceStopButton.addEventListener("click", forceStopBackgroundBatch);
-elements.confirmCheckbox.addEventListener("change", () => {
-  elements.confirmButton.disabled = !elements.confirmCheckbox.checked;
-});
-elements.confirmDialog.addEventListener("close", () => {
-  if (elements.confirmDialog.returnValue === "confirm" && elements.confirmCheckbox.checked) {
-    runBatch();
-  }
-});
 
 async function initialize() {
   let previousStatus = null;

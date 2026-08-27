@@ -376,6 +376,82 @@ h1 { margin: 0 0 2px; font-size: 17px; letter-spacing: 0.01em; }
 .drawer-done-button { border: 0; color: #fff; background: #fb7299; }
 .drawer-done-button:hover { background: #f05f8b; }
 
+.confirmation-drawer {
+  position: fixed;
+  z-index: 920;
+  inset: 0;
+}
+.confirmation-drawer[hidden] { display: none; }
+.confirmation-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(31, 38, 51, .58);
+  backdrop-filter: blur(3px);
+  cursor: default;
+}
+.confirmation-drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  width: 420px;
+  padding: 17px;
+  background: #fffafc;
+  box-shadow: -20px 0 54px rgba(31, 38, 51, .28);
+}
+.confirmation-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1px 1px 12px;
+}
+.confirmation-eyebrow { display: block; margin-bottom: 4px; color: #d95478; font-size: 9px; font-weight: 750; letter-spacing: .08em; }
+.confirmation-drawer-header h2 { margin: 0 0 4px; color: #273142; font-size: 18px; }
+.confirmation-drawer-header p { margin: 0; color: #7f8999; font-size: 11px; }
+.confirmation-drawer-header strong { color: #e94d64; }
+.confirmation-warning {
+  margin: 0 0 9px;
+  padding: 9px 10px;
+  border: 1px solid #f0c4ce;
+  border-radius: 9px;
+  color: #995164;
+  background: #fff1f5;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.confirmation-settings {
+  padding: 0 2px 9px;
+  color: #8a6b75;
+  font-size: 10px;
+}
+.confirmation-drawer-list {
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid #eadde2;
+  border-radius: 12px;
+  background: #fff;
+  scrollbar-width: thin;
+  scrollbar-color: #d8c6cc transparent;
+}
+.confirmation-drawer-list .selection-drawer-item { grid-template-columns: 32px minmax(0, 1fr); }
+.confirmation-drawer-footer {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: 9px;
+  padding-top: 11px;
+}
+.confirmation-drawer-footer button { height: 39px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+.confirmation-edit-button { border: 1px solid #dfe4ed; color: #596474; background: #fff; }
+.confirmation-edit-button:hover { border-color: #fb7299; color: #d95478; }
+.confirmation-submit-button { border: 0; color: #fff; background: #e94d64; box-shadow: 0 7px 16px rgba(233,77,100,.2); }
+.confirmation-submit-button:hover:not(:disabled) { background: #dc4058; }
+
 .batch-mask {
   position: fixed;
   z-index: 1000;
@@ -411,19 +487,6 @@ h1 { margin: 0 0 2px; font-size: 17px; letter-spacing: 0.01em; }
 .mask-force-stop-button { background: #e94d64; box-shadow: 0 7px 16px rgba(233,77,100,.18); }
 .mask-force-stop-button:hover:not(:disabled) { background: #db4058; }
 .mask-card small { display: block; margin-top: 10px; color: #9a7a66; font-size: 10px; line-height: 1.5; }
-
-dialog { width: 440px; padding: 0; border: 0; border-radius: 17px; box-shadow: 0 22px 60px rgba(34,42,56,.25); }
-dialog::backdrop { background: rgba(27,32,43,.46); backdrop-filter: blur(2px); }
-.dialog-card { padding: 24px; text-align: center; }
-.dialog-symbol { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 auto 12px; border-radius: 50%; color: #fff; background: #fb7299; font-size: 21px; font-weight: 800; }
-.dialog-card h2 { margin: 0 0 8px; font-size: 18px; }
-.dialog-card > p { margin: 0 0 17px; color: #6f798a; font-size: 12px; line-height: 1.6; }
-.confirm-check { display: flex; gap: 9px; align-items: flex-start; padding: 11px; border-radius: 10px; background: #f6f8fb; color: #566173; text-align: left; font-size: 11px; line-height: 1.5; }
-.confirm-check input { margin-top: 2px; accent-color: #fb7299; }
-.dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 17px; }
-.dialog-actions button { height: 38px; border-radius: 10px; font-size: 12px; font-weight: 650; }
-.secondary-button { border: 1px solid #dfe4ed; color: #596474; background: #fff; }
-.confirm-button { border: 0; color: #fff; background: #e94d64; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }

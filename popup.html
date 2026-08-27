@@ -101,7 +101,7 @@
 
       <footer class="footer">
         <p>取消关注无法由本插件撤销；操作严格串行，间隔会随机波动，但不能保证不触发风控。</p>
-        <button id="runButton" class="primary-button" type="button" disabled>取消关注已选用户</button>
+        <button id="runButton" class="primary-button" type="button" disabled>选择用户后检查名单</button>
       </footer>
     </main>
 
@@ -134,6 +134,29 @@
       </aside>
     </section>
 
+    <section id="confirmationDrawer" class="confirmation-drawer" role="dialog" aria-modal="true" aria-labelledby="confirmationDrawerTitle" hidden>
+      <button id="confirmationDrawerBackdrop" class="confirmation-drawer-backdrop" type="button" aria-label="关闭取关确认抽屉"></button>
+      <aside class="confirmation-drawer-panel">
+        <header class="confirmation-drawer-header">
+          <div>
+            <span class="confirmation-eyebrow">执行前最后确认</span>
+            <h2 id="confirmationDrawerTitle">确认取关名单</h2>
+            <p>即将取消关注 <strong id="confirmationDrawerCount">0</strong> 人</p>
+          </div>
+          <button id="confirmationDrawerCloseButton" class="drawer-close-button" type="button" aria-label="关闭取关确认抽屉">×</button>
+        </header>
+
+        <p class="confirmation-warning">取消关注无法由本插件撤销，请滚动核对最终名单。</p>
+        <div id="confirmationSettings" class="confirmation-settings"></div>
+        <div id="confirmationDrawerList" class="confirmation-drawer-list" aria-label="最终取关名单"></div>
+
+        <footer class="confirmation-drawer-footer">
+          <button id="confirmationDrawerEditButton" class="confirmation-edit-button" type="button">返回修改名单</button>
+          <button id="confirmationDrawerSubmitButton" class="confirmation-submit-button" type="button">确认执行</button>
+        </footer>
+      </aside>
+    </section>
+
     <section id="batchMask" class="batch-mask" aria-live="polite" aria-modal="true" role="dialog" hidden>
       <div class="mask-card">
         <div class="tea-cup" aria-hidden="true">🍵</div>
@@ -149,22 +172,6 @@
         <small>误点弹窗外部也不会中断。强制中断无法撤销已发送或已完成的请求；请保持绑定的 B 站标签页打开。</small>
       </div>
     </section>
-
-    <dialog id="confirmDialog">
-      <form method="dialog" class="dialog-card">
-        <div class="dialog-symbol" aria-hidden="true">!</div>
-        <h2>确认取消关注？</h2>
-        <p id="confirmText"></p>
-        <label class="confirm-check">
-          <input id="confirmCheckbox" type="checkbox" />
-          <span>我已核对名单，并了解此操作无法由插件撤销</span>
-        </label>
-        <div class="dialog-actions">
-          <button value="cancel" class="secondary-button">返回检查</button>
-          <button id="confirmButton" value="confirm" class="confirm-button" disabled>确认执行</button>
-        </div>
-      </form>
-    </dialog>
 
     <script src="popup.js"></script>
   </body>
