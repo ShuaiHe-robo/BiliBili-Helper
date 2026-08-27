@@ -29,6 +29,17 @@ const elements = {
   visibleCount: document.querySelector("#visibleCount"),
   sortSelect: document.querySelector("#sortSelect"),
   selectedCount: document.querySelector("#selectedCount"),
+  selectedDrawerButton: document.querySelector("#selectedDrawerButton"),
+  selectionDrawer: document.querySelector("#selectionDrawer"),
+  selectionDrawerBackdrop: document.querySelector("#selectionDrawerBackdrop"),
+  selectionDrawerCloseButton: document.querySelector("#selectionDrawerCloseButton"),
+  selectionDrawerCount: document.querySelector("#selectionDrawerCount"),
+  selectionDrawerSearch: document.querySelector("#selectionDrawerSearch"),
+  selectionDrawerList: document.querySelector("#selectionDrawerList"),
+  selectionDrawerEmpty: document.querySelector("#selectionDrawerEmpty"),
+  selectionDrawerEmptyText: document.querySelector("#selectionDrawerEmptyText"),
+  selectionDrawerClearButton: document.querySelector("#selectionDrawerClearButton"),
+  selectionDrawerDoneButton: document.querySelector("#selectionDrawerDoneButton"),
   list: document.querySelector("#list"),
   pagination: document.querySelector("#pagination"),
   previousPageButton: document.querySelector("#previousPageButton"),
@@ -149,6 +160,81 @@ function getPageFollowings(filtered = getFilteredFollowings()) {
   return filtered.slice(start, start + PAGE_SIZE);
 }
 
+function getSelectedUsers() {
+  return state.followings.filter((user) => state.selected.has(user.mid));
+}
+
+function renderSelectionDrawer() {
+  const selectedUsers = getSelectedUsers();
+  elements.selectionDrawerCount.textContent = String(selectedUsers.length);
+  elements.selectionDrawerClearButton.disabled = state.running || selectedUsers.length === 0;
+  elements.selectionDrawerSearch.disabled = selectedUsers.length === 0;
+  if (elements.selectionDrawer.hidden) return;
+
+  const query = elements.selectionDrawerSearch.value.trim().toLocaleLowerCase("zh-CN");
+  const visibleUsers = query
+    ? selectedUsers.filter((user) =>
+        user.name.toLocaleLowerCase("zh-CN").includes(query) || user.mid.includes(query)
+      )
+    : selectedUsers;
+
+  elements.selectionDrawerList.replaceChildren();
+  elements.selectionDrawerList.hidden = visibleUsers.length === 0;
+  elements.selectionDrawerEmpty.hidden = visibleUsers.length > 0;
+  elements.selectionDrawerEmptyText.textContent = selectedUsers.length === 0
+    ? "还没有选择用户"
+    : "没有匹配的已选用户";
+
+  const fragment = document.createDocumentFragment();
+  for (const user of visibleUsers) {
+    const row = document.createElement("div");
+    row.className = "selection-drawer-item";
+
+    const avatar = document.createElement("span");
+    avatar.className = "avatar";
+    avatar.textContent = Array.from(user.name.trim())[0]?.toUpperCase() || "B";
+
+    const copy = document.createElement("span");
+    copy.className = "user-copy";
+    const name = document.createElement("div");
+    name.className = "user-name";
+    name.textContent = user.name;
+    name.title = user.name;
+    const meta = document.createElement("div");
+    meta.className = "user-meta";
+    meta.textContent = `UID ${user.mid} · 关注于 ${formatFollowTime(user.followedAt)}`;
+    copy.append(name, meta);
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "drawer-remove-button";
+    removeButton.type = "button";
+    removeButton.textContent = "移除";
+    removeButton.dataset.removeMid = user.mid;
+    removeButton.disabled = state.running;
+    removeButton.setAttribute("aria-label", `从已选用户中移除 ${user.name}`);
+
+    row.append(avatar, copy, removeButton);
+    fragment.append(row);
+  }
+  elements.selectionDrawerList.append(fragment);
+}
+
+function openSelectionDrawer() {
+  if (state.selected.size === 0) return;
+  elements.selectionDrawer.hidden = false;
+  elements.selectedDrawerButton.setAttribute("aria-expanded", "true");
+  elements.selectionDrawerSearch.value = "";
+  renderSelectionDrawer();
+  elements.selectionDrawerSearch.focus();
+}
+
+function closeSelectionDrawer() {
+  if (elements.selectionDrawer.hidden) return;
+  elements.selectionDrawer.hidden = true;
+  elements.selectedDrawerButton.setAttribute("aria-expanded", "false");
+  elements.selectedDrawerButton.focus();
+}
+
 function render() {
   enforceProtectedSelectionInvariant();
   const filtered = getFilteredFollowings();
@@ -158,6 +244,7 @@ function render() {
   elements.loadedCount.textContent = String(state.followings.length);
   elements.visibleCount.textContent = String(visible.length);
   elements.selectedCount.textContent = String(state.selected.size);
+  elements.selectedDrawerButton.disabled = state.loading || state.selected.size === 0;
   elements.runButton.textContent = state.selected.size > 0
     ? `取消关注已选 ${state.selected.size} 人`
     : "取消关注已选用户";
@@ -181,6 +268,7 @@ function render() {
   elements.previousPageButton.disabled = state.loading || state.running || state.currentPage <= 1;
   elements.nextPageButton.disabled = state.loading || state.running || state.currentPage >= pageCount;
   elements.selectAndNextButton.disabled = state.loading || state.categoryLoading || state.running || state.currentPage >= pageCount;
+  renderSelectionDrawer();
 
   if (visible.length === 0) {
     if (state.categoryLoading) {
@@ -596,6 +684,25 @@ elements.selectAndNextButton.addEventListener("click", selectNextPageAndSelect);
 elements.selectVisibleButton.addEventListener("click", selectVisible);
 elements.invertVisibleButton.addEventListener("click", invertVisible);
 elements.clearButton.addEventListener("click", () => { state.selected.clear(); render(); });
+elements.selectedDrawerButton.addEventListener("click", openSelectionDrawer);
+elements.selectionDrawerBackdrop.addEventListener("click", closeSelectionDrawer);
+elements.selectionDrawerCloseButton.addEventListener("click", closeSelectionDrawer);
+elements.selectionDrawerDoneButton.addEventListener("click", closeSelectionDrawer);
+elements.selectionDrawerSearch.addEventListener("input", renderSelectionDrawer);
+elements.selectionDrawerClearButton.addEventListener("click", () => {
+  if (state.running) return;
+  state.selected.clear();
+  render();
+});
+elements.selectionDrawerList.addEventListener("click", (event) => {
+  const removeButton = event.target.closest("button[data-remove-mid]");
+  if (!removeButton || state.running) return;
+  state.selected.delete(removeButton.dataset.removeMid);
+  render();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !elements.selectionDrawer.hidden) closeSelectionDrawer();
+});
 elements.previousPageButton.addEventListener("click", () => {
   state.currentPage = Math.max(1, state.currentPage - 1);
   render();

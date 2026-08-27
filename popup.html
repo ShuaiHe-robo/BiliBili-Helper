@@ -48,7 +48,10 @@
       <section class="summary" aria-label="列表统计">
         <span>已载入 <strong id="loadedCount">0</strong></span>
         <span>本页显示 <strong id="visibleCount">0</strong></span>
-        <span class="selected-count">已选 <strong id="selectedCount">0</strong></span>
+        <button id="selectedDrawerButton" class="selected-count-button" type="button" aria-controls="selectionDrawer" aria-expanded="false" disabled>
+          已选 <strong id="selectedCount">0</strong>
+          <span aria-hidden="true">管理 ›</span>
+        </button>
       </section>
 
       <section id="list" class="follow-list" aria-label="关注列表"></section>
@@ -101,6 +104,35 @@
         <button id="runButton" class="primary-button" type="button" disabled>取消关注已选用户</button>
       </footer>
     </main>
+
+    <section id="selectionDrawer" class="selection-drawer" role="dialog" aria-modal="true" aria-labelledby="selectionDrawerTitle" hidden>
+      <button id="selectionDrawerBackdrop" class="selection-drawer-backdrop" type="button" aria-label="关闭已选用户抽屉"></button>
+      <aside class="selection-drawer-panel">
+        <header class="selection-drawer-header">
+          <div>
+            <h2 id="selectionDrawerTitle">已选用户</h2>
+            <p>共 <strong id="selectionDrawerCount">0</strong> 人，可逐个取消选择</p>
+          </div>
+          <button id="selectionDrawerCloseButton" class="drawer-close-button" type="button" aria-label="关闭已选用户抽屉">×</button>
+        </header>
+
+        <label class="drawer-search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="selectionDrawerSearch" type="search" placeholder="在已选用户中搜索" autocomplete="off" />
+        </label>
+
+        <div id="selectionDrawerList" class="selection-drawer-list" aria-label="已选用户列表"></div>
+        <div id="selectionDrawerEmpty" class="selection-drawer-empty" hidden>
+          <span aria-hidden="true">◎</span>
+          <p id="selectionDrawerEmptyText">还没有选择用户</p>
+        </div>
+
+        <footer class="selection-drawer-footer">
+          <button id="selectionDrawerClearButton" class="drawer-clear-button" type="button">清空已选</button>
+          <button id="selectionDrawerDoneButton" class="drawer-done-button" type="button">完成</button>
+        </footer>
+      </aside>
+    </section>
 
     <section id="batchMask" class="batch-mask" aria-live="polite" aria-modal="true" role="dialog" hidden>
       <div class="mask-card">
