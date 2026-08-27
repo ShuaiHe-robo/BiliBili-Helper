@@ -303,7 +303,6 @@ function closeConfirmationDrawer() {
 
 function editFromConfirmationDrawer() {
   closeConfirmationDrawer();
-  openSelectionDrawer();
 }
 
 function render() {
